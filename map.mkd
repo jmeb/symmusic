@@ -1,0 +1,60 @@
+% A map for symmuse
+% jmeb
+% 19.10.11
+
+###Overview
+
+Symmuse is meant for poorly organized music collections which you aren't allowed to manipulate, but would like a nicer way of browsing. It recursively reads a directory for audiotags and builds a nice directory structure utilizing symbolic links to originating data files. 
+
+Heres and example:
+
+*Ugly directory*
+
+Music
+
+  - Greg Brown - Bathtub Blues - 2001
+  - Greg Brown - Live - 2010
+  - Milk of the Moon - 2008 (Greg Brown)
+  - Sylvie Lewis Translations 
+  - Tango by Sylvie Lewis (2005)
+
+*symmuse creatin*
+  
+Music Library
+  - Greg Brown
+    - Bathtub Blues (2001)
+    - Live (2010)
+  - Sylvie Lewis
+    - Tango (2005)
+    - Translations (2008)
+
+Why do this? 1--I need a bigger python project to learn on. 2--I want to be able to read through my music library easily with any file-based program. 
+
+pytagsfs is an awesome already implemented version of what I'm trying to do. Why reinvent? It runs through fuse, and its virtual fs is stored in memory. This is fine for one-view of a not-to-large music collection. But if you're storing a big music collection, and want to have it listed multiple ways (by artist, by album, by genre) the resources can add up quick.  
+
+##Dependencies
+
+* Python
+* [mutagen][] -- a python module to handle audio metatdata
+* other tag-reading options [here][tagoptions]
+
+###Features?
+
+* Works with mp3, FLAC, OGG. 
+* allow command line specification of heirarchy (pytagfs will be good here)
+* update only changed or new files (via command line option of the last time it was run)
+
+###Goals
+
+* os.walk to read the first audio file in each album dir, print
+* read specified tag for each file in os.walk list
+  - in stages: mp3 first, then FLAC, and OGG
+* create list of unique values, and make directories
+  - remove case sensativity (command line option)
+  - matching of any sort (leave til later)
+
+
+
+[mutagen]: http://code.google.com/p/mutagen/
+[tagoptions]: http://wiki.python.org/moin/UsefulModules#ID3_Handling
+
