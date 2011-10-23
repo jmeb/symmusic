@@ -10,8 +10,9 @@ Why do this? 1--I need a bigger python project to learn on. 2--I want to be able
 
 ###Features?
 
-* Works with mp3 (Yes), FLAC (Pending), OGG (Pending). 
+* Works with mp3 (Yes), FLAC (Yes), OGG (Yes). 
 * allow command line specification of hierarchy  (Working)
+	- For now, symmusic always attaches the file-type extension to each album directory.
 * update only changed or new files (via command line option of the last time it was run). 
 	- Can be done. Likely unnecessary unless you can't spare a minute of CPU time.
 
@@ -19,7 +20,7 @@ Why do this? 1--I need a bigger python project to learn on. 2--I want to be able
 
 A basic syntax example:
 
-		symmusic.py --dn %a %l --fn %n %t --src /home/user/music /home/user/music-by-artist
+		symmusic.py --dn %a %l --fn %n %t --src /home/user/music --dst /home/user/music-by-artist
 
 This will read a users ../music directory, and create a new directory structure in ../music-by-artist. The new structure will have three levels: artist (a) > album (l) > filenames (n t). The filename is the track number (n), and title (t). Symbolic links will resolve back to the ../music directory. All except the '--src' argument are required (--src defaults to the working directory if not specified.)
 
@@ -34,11 +35,11 @@ This will read a users ../music directory, and create a new directory structure 
 
 * [unidecode][] (optional)
 
-
 ###TODO
 
 * Write argparse command line parsing -- working...ish
-* Add FLAC and OGG parsing 
+* Add FLAC and OGG parsing -- Working
+* Clean things up.
 
 [pytagsfs]: http://www.pytagsfs.org/
 [mutagen]: http://code.google.com/p/mutagen/
