@@ -14,9 +14,9 @@ import os
 import re
 import argparse
 import mutagen
-#from mutagen.flac import FLAC  -- not yet implemented
+from mutagen.flac import FLAC  
 from mutagen.easyid3 import EasyID3
-#from mutagen.oggvorbis import OggVorbis -- no yet implemented
+from mutagen.oggvorbis import OggVorbis 
 #from unidecode import unidecode -- will simplify UTF to ASCII
 
 ###
@@ -24,23 +24,34 @@ from mutagen.easyid3 import EasyID3
 ###
 
 tagdict = {
-    'g' : 'genre',
-    'a' : 'artist',
-    'l' : 'album',
-    't' : 'title',
-    'n' : 'tracknumber',
-    'g' : 'genre',
+    '%g' : 'genre',
+    '%a' : 'artist',
+    '%l' : 'album',
+    '%t' : 'title',
+    '%n' : 'tracknumber',
+    '%y' : 'year',
     }
     
+formats = [ 'mp3', 'flac', 'ogg' ]
+
 ###
-# Functions
+# Functiions
 ###
+
 def parseArgs():
-  ap = argparse.ArgumentParser(description='Create directory structure based on audio tags.')
-  ap.add_argument('--dn',nargs='+',required=True,choices=tagdict,help='IN ORDER! Directory level tags')
-  ap.add_argument('--fn',nargs='+',required=True,choices=tagdict,help='IN ORDER! Tags for filenames')
+  #TODO: 
+  #   * add format options
+  #   * add seperator options
+  ap = (argparse.ArgumentParser(
+    description='Create directory structure based on audio tags.'))
+  ap.add_argument('--dn',nargs='+',required=True,choices=tagdict, \
+                          help='IN ORDER! Directory level tags')
+  ap.add_argument('--fn',nargs='+',required=True,choices=tagdict, \
+                          help='IN ORDER! Tags for filenames')
+  ap.add_argument('--formats',nargs='+',default=formats,choices=formats, \
+                          help='Formats to search for')
   ap.add_argument('-s', '--src', default=os.getcwd(),help='Source directory.')
-  ap.add_argument('dst', help='Destination path') #Required at end
+  ap.add_argument('-d','--dst', required=True,help='Destination path') 
   return ap.parse_args()
 
 def getDict(args,dictionary):
@@ -57,15 +68,16 @@ def getMusic(src,pattern):
     for fn in files:
       if fn.endswith(pattern):
         musiclist.append(os.path.join(root, fn))
+  print "Number of %s found: %d" % (pattern,len(musiclist))
   return musiclist
 
-def getMP3Tag(f,tagname):
+def getTag(f,fun,tagname):
   """ Get an mp3 tag, fail without fanfare
   """
   try:
-    tags = EasyID3(f)
+    tags = fun(f)
   except ValueError:
-    tags = 'None'
+    tags = 'Unknown'
   if tags.has_key(tagname):
     try:
       tag = tags[tagname][0]
@@ -74,18 +86,20 @@ def getMP3Tag(f,tagname):
         slashproofed = re.sub(r"/","-",cleaned) #Hack....
         return slashproofed
       else:
-        return ''
+        return 'Unknown'
     except IndexError:
       pass
   else:
       return 'Unknown'
   
-def getMP3Tags(f,tagnames):
+def getTagList(f,fun,ext,tagnames):
   """ Get multiple tags for a file, based on a given list
   """
   tags = []
   for tagname in tagnames:
-    tag = getMP3Tag(f,tagname)
+    tag = getTag(f,fun,tagname)
+    if tagname is 'album':
+      tag = tag + ' [' + ext + ']'
     tags.append(tag)
   return tags
 
@@ -102,37 +116,49 @@ def makeDirHeir(dirs,nametags,ext,source,base):
   except OSError or AttributeError:
     pass
   
+def enchilada(encoding,dirs,names,dst):
+  #Dumb count of succesful mp3 symbolic links
+  made = 0 
+  for f in encoding[0]:
+    try:
+      dirtags = getTagList(f,encoding[1],encoding[2],dirs)
+      nametags = getTagList(f,encoding[1],encoding[2],names)
+     # print dirtags, nametags
+      makeDirHeir(dirtags,nametags,encoding[2],f,dst)
+      made += 1
+    except AttributeError or UnboundLocalError:
+      pass
+  print "Succesful %s makes: %i" % (encoding[2],made)
+
+###
+# Main
+###
+
 def main():
 
+  #Getting the arguments
   args = parseArgs()
-
   src = os.path.abspath(args.src)     #Source directory
   dst = os.path.abspath(args.dst)     #Destination
   dirs = getDict(args.dn,tagdict)     #Directory name tags
   names = getDict(args.fn,tagdict)    #Filename tags
 
+  #List of files
+  # TODO: refactor to make formats a list
   mp3s = getMusic(src,".mp3")
+  flacs = getMusic(src,".flac")
+  oggs = getMusic(src,".ogg")
 
-  print "Number of mp3's found: ",  len(mp3s)
+  #Tuple makin'
+  mp3 = mp3s, EasyID3, '.mp3'
+  flac = flacs, FLAC, '.flac'
+  ogg = oggs, OggVorbis, '.ogg'
 
-  made = 0
-
-  # Get tags, and make directory at same time for every mp3
-  # This should be factored out into a function
-  for f in mp3s:
-    try:
-      dirtags = getMP3Tags(f,dirs)
-      nametags = getMP3Tags(f,names)
-     # print dirtags, nametags
-      makeDirHeir(dirtags,nametags,".mp3",f,dst)
-      made += 1
-    except AttributeError or UnboundLocalError:
-      pass
-
-  print "Number of mp3's written: ", made
-  diff = len(mp3s) - made
-  print "Number of mp3's without tags:", diff
-
+  #The big creation
+  enchilada(mp3,dirs,names,dst)
+  enchilada(flac,dirs,names,dst)
+  enchilada(ogg,dirs,names,dst)
+  
 if __name__ == '__main__':
     main()
 
