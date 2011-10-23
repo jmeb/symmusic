@@ -37,8 +37,8 @@ tagdict = {
 ###
 def parseArgs():
   ap = argparse.ArgumentParser(description='Create directory structure based on audio tags.')
-  ap.add_argument('--dn',nargs='+',choices=tagdict,help='IN ORDER! Directory level tags')
-  ap.add_argument('--fn',nargs='+',choices=tagdict,help='IN ORDER! Tags for filenames')
+  ap.add_argument('--dn',nargs='+',required=True,choices=tagdict,help='IN ORDER! Directory level tags')
+  ap.add_argument('--fn',nargs='+',required=True,choices=tagdict,help='IN ORDER! Tags for filenames')
   ap.add_argument('-s', '--src', default=os.getcwd(),help='Source directory.')
   ap.add_argument('dst', help='Destination path') #Required at end
   return ap.parse_args()

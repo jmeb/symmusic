@@ -2,15 +2,18 @@
 
 Symmuse is meant for poorly-named music collections which you aren't allowed to manipulate, but would like a nicer way of browsing. It recursively reads a directory for audio tags and builds a nice directory structure from them. The bottom-level audio files are then symbolically linked to their originating file. This (should) allow one to keep multiple directories organized by artist, genre, album, etc without much overhead.   
 
-[pytagsfs][] is an awesome already implemented version of what I'm trying to do. Its much more flexible then what I this script will ever likely be. For instance, it lets your edit your metadata on the fly by simply rearranging material in the virtual filesystem. Why reinvent then? Pytagfs runs through fuse, and its map of metadata is stored in memory. This is fine for one-view of a not-too-large music collection. But if you're storing a big music collection, and want to have it listed multiple ways (by artist, by album, by genre) the resources can add up quick. This script is quicker than starting up pytagsfs on a large directory, and doesn't use resources once its done.
+[pytagsfs][] is an awesome already implemented version of what I'm trying to do. Its much more flexible then what this script will ever be. For instance, it lets your edit your metadata on the fly by simply rearranging material in the virtual filesystem, and smartly exclude compilations.
+
+Why reinvent then? Pytagfs runs through fuse, and its map of metadata is stored in memory. This is fine for one-view of a not-too-large music collection. But if you're storing a big music collection, and want to have it listed multiple ways (by artist, by album, by genre) the resources can add up quick. This script is quicker than starting up pytagsfs on a large directory, and doesn't use resources once its done.
 
 Why do this? 1--I need a bigger python project to learn on. 2--I want to be able to read through my music library easily with any file-based program. 
 
 ###Features?
 
-* Works with mp3, FLAC(Pending), OGG(Pending). 
-* allow command line specification of hierarchy 
-* update only changed or new files (via command line option of the last time it was run)
+* Works with mp3 (Yes), FLAC (Pending), OGG (Pending). 
+* allow command line specification of hierarchy  (Working)
+* update only changed or new files (via command line option of the last time it was run). 
+	- Can be done. Likely unnecessary unless you can't spare a minute of CPU time.
 
 ###Use
 
@@ -18,7 +21,7 @@ A basic syntax example:
 
 		symmusic.py -d a l -f n t --src /home/user/music /home/user/music-by-artist
 
-This will read a users ../music directory, and create a new directory structure in ../music-by-artist. The new structure will have three levels: artist (a) > album (l) > filenames (n t). The filename is the track number (n), and title (t). Symbolic links will resolve back to the ../music directory.
+This will read a users ../music directory, and create a new directory structure in ../music-by-artist. The new structure will have three levels: artist (a) > album (l) > filenames (n t). The filename is the track number (n), and title (t). Symbolic links will resolve back to the ../music directory. All except the '--src' argument are required (--src defaults to the working directory if not specified.)
 
 *Warning*: This script will likely fail like mad if your destination directory is under your source directory. The paths will get more confused than a character's journey in a ASOIAF. Eventually there should be a check to make sure this isn't the case.
 
@@ -37,7 +40,7 @@ This will read a users ../music directory, and create a new directory structure 
 * Write argparse command line parsing -- working...ish
 * Add FLAC and OGG parsing 
 
-
+[pytagsfs]: http://www.pytagsfs.org/
 [mutagen]: http://code.google.com/p/mutagen/
 [unidecode]: http://pypi.python.org/pypi/Unidecode/ 
 
