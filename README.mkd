@@ -28,7 +28,7 @@ This will read a users ../music directory, and create a new directory structure 
 
 * Currently all mp3/flac/ogg files will be searched. If you only want to list one file type you'll need to edit the script directly. (Just uncomment the relevant 'enchilada' at the end of main().) Eventually I'll implement a front end to do this.
 
-* All albums have are appended with a tag of what filetype the contain. So "The White Album" becomes "The White Album [.mp3]". This is something my own collection needs because I often have flac and mp3 versions of the same files. 
+* All albums are appended with a tag of what filetype the contain. So "The White Album" becomes "The White Album [.mp3]". This is something my own collection needs because I often have flac and mp3 versions of the same files. 
 
 * When a metadata tag can't be read it *should* return 'Unknown'. The effect is you might have 'unknown' directories in each level of your hierarchy. 
 
