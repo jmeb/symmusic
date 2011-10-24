@@ -28,15 +28,15 @@ This will read a users ../music directory, and create a new directory structure 
 
 * Sort by: Genre / Artist / Album. Filename is Number - Title:
 
-	symmusic.py --dn %g %a %l --fn %t --src /music --dst /by-genre
+		symmusic.py --dn %g %a %l --fn %t --src /music --dst /by-genre
 
 * Sort by: Year / Genre / Album. Filename is Artist - Title:
 
-	symmusic.py --dn %y %g %l --fn %a %t --src /music --dst /by-year
+		symmusic.py --dn %y %g %l --fn %a %t --src /music --dst /by-year
 
 * Sort by: Album. Filename is Artist - Year - Title:
 
-	symmusic.py --dn %l --fn %a %y %t
+		symmusic.py --dn %l --fn %a %y %t
 
 
 
