@@ -1,6 +1,6 @@
 ###Overview
 
-Symmuse is meant for poorly-named music collections which you aren't allowed to manipulate, but would like a nicer way of browsing. It recursively reads a directory for audio tags and builds a nice directory structure from them. The bottom-level audio files are then symbolically linked to their originating file. This (should) allow one to keep multiple directories organized by artist, genre, album, etc without much overhead.   
+Symmusic is meant for poorly-named music collections which you aren't allowed to manipulate, but would like a nicer way of browsing. It recursively reads a directory for audio tags and builds a nice directory structure from them. The bottom-level audio files are then symbolically linked to their originating file. This (should) allow one to keep multiple directories organized by artist, genre, album, etc without much overhead.   
 
 [pytagsfs][] is an awesome already implemented version of what I'm trying to do. Its much more flexible then what this script will ever be. For instance, it lets your edit your metadata on the fly by simply rearranging material in the virtual filesystem, and smartly exclude compilations.
 
@@ -23,6 +23,22 @@ A basic syntax example:
 		symmusic.py --dn %a %l --fn %n %t --src /home/user/music --dst /home/user/music-by-artist
 
 This will read a users ../music directory, and create a new directory structure in ../music-by-artist. The new structure will have three levels: artist (a) > album (l) > filenames (n t). The filename is the track number (n), and title (t). Symbolic links will resolve back to the ../music directory. All except the '--src' argument are required (--src defaults to the working directory if not specified.)
+
+####Examples
+
+* Sort by: Genre / Artist / Album. Filename is Number - Title:
+
+	symmusic.py --dn %g %a %l --fn %t --src /music --dst /by-genre
+
+* Sort by: Year / Genre / Album. Filename is Artist - Title:
+
+	symmusic.py --dn %y %g %l --fn %a %t --src /music --dst /by-year
+
+* Sort by: Album. Filename is Artist - Year - Title:
+
+	symmusic.py --dn %l --fn %a %y %t
+
+
 
 *Warning*: This script will likely fail like mad if your destination directory is under your source directory. The paths will get more confused than a character's journey in a ASOIAF. Eventually there should be a check to make sure this isn't the case.
 
