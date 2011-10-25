@@ -17,7 +17,6 @@ import mutagen
 from mutagen.flac import FLAC  
 from mutagen.easyid3 import EasyID3
 from mutagen.oggvorbis import OggVorbis 
-#from unidecode import unidecode -- will simplify UTF to ASCII
 
 ###
 # Globals
@@ -103,7 +102,7 @@ def getTagList(f,fun,ext,tagnames):
     tags.append(tag)
   return tags
 
-def makeDirHeir(dirs,nametags,ext,source,base):
+def makeDirStructure(dirs,nametags,ext,source,base):
   """ Make directory heirarch based on tag order
   """
   try:
@@ -124,7 +123,7 @@ def enchilada(encoding,dirs,names,dst):
       dirtags = getTagList(f,encoding[1],encoding[2],dirs)
       nametags = getTagList(f,encoding[1],encoding[2],names)
      # print dirtags, nametags
-      makeDirHeir(dirtags,nametags,encoding[2],f,dst)
+      makeDirStructure(dirtags,nametags,encoding[2],f,dst)
       made += 1
     except AttributeError or UnboundLocalError:
       pass
@@ -143,16 +142,11 @@ def main():
   dirs = getDict(args.dn,tagdict)     #Directory name tags
   names = getDict(args.fn,tagdict)    #Filename tags
 
-  #List of files
-  # TODO: refactor to make formats a list
-  mp3s = getMusic(src,".mp3")
-  flacs = getMusic(src,".flac")
-  oggs = getMusic(src,".ogg")
-
   #Tuple makin'
-  mp3 = mp3s, EasyID3, '.mp3'
-  flac = flacs, FLAC, '.flac'
-  ogg = oggs, OggVorbis, '.ogg'
+  #format = list of files, mutagen function, extension
+  mp3 = getMusic(src,".mp3"), EasyID3, '.mp3'
+  flac = getMusic(src,".flac"), FLAC, '.flac'
+  ogg = getMusic(src,".ogg"), OggVorbis, '.ogg'
 
   #The big creation
   enchilada(mp3,dirs,names,dst)
