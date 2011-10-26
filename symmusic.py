@@ -28,7 +28,7 @@ tagdict = {
     '%l' : 'album',
     '%t' : 'title',
     '%n' : 'tracknumber',
-    '%y' : 'year',
+    '%y' : 'date',
     }
     
 formats = [ 'mp3', 'flac', 'ogg' ]
