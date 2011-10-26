@@ -10,21 +10,39 @@ Why do this? 1--I need a bigger python project to learn on. 2--I want to be able
 
 ##Features?
 
-* Works with mp3, FLAC, OGGVorbis. 
+* Works with mp3, FLAC, OGGVorbis. Can choose 1, 2 or all 3. 
 * allow command line specification of hierarchy.
 * Return simple count of found files and created symbolic links.
 
 ###TODO
 
-* Warning/Fail on Windows
+* Warning/Fail on Windows (DONE)
 	- Longer term, find windows workaround for symbolic links
-* Command line arguments for filetypes.
 * Update only changed/new files in directory (with option for length of time)
-* Warning for --dst inside of --src.
+* Warning for --dst inside of --src. (DONE)
 * Allow complex directory specification (e.g. multiple tags)
-* Clean things up.
 
 ##Use
+
+###Command line options
+
+* *--formats* (*-f*): specify audio formats to search and parse
+	- *options*: mp3 , ogg , flac
+	- *default*: All (mp3, ogg, flac)
+* *--dn* : directory names. **Required**.
+	- each argument will create a directory level. Follows given order.
+	- *options*: %a (artist), %l (album), %g (genre), %n (track number), %t (track title), %y (year/date)
+	- *note*: albums (%l) will be appended with file extensions.
+* *--fn* : File name. **Required**.
+	- each argument will be added to the file name separated by a hyphen. All files will have proper file extension added.
+	- *options*: %a (artist), %l (album), %g (genre), %n (track number), %t (track title), %y (year/date)
+* *--src* : Directory to search for music files.
+	- will be searched recursively. 
+	- *default*: current working directory.
+* *--dst* : Directory to build new file structure in. **Required**.
+
+
+###Examples
 
 A basic syntax example:
 
@@ -32,11 +50,9 @@ A basic syntax example:
 
 This will read a users ../music directory, and create a new directory structure in ../music-by-artist. The new structure will have three levels: artist (a) > album (l) > filenames (n t). Note that directory structure is based on order of options, with the leftmost option being the highest level directory. The filename is the track number (n), and title (t). Symbolic links will resolve back to the ../music directory. All except the '--src' argument are required (--src defaults to the working directory if not specified.)
 
-####More Examples
+* Sort only mp3s by: Genre / Artist / Album. Filename is Number - Title:
 
-* Sort by: Genre / Artist / Album. Filename is Number - Title:
-
-		symmusic.py --dn %g %a %l --fn %t --src /music --dst /by-genre
+		symmusic.py --formats mp3 --dn %g %a %l --fn %t --src /music --dst /by-genre
 
 * Sort by: Year / Genre / Album. Filename is Artist - Title:
 

@@ -31,24 +31,21 @@ tagdict = {
     '%y' : 'date',
     }
     
-formats = [ 'mp3', 'flac', 'ogg' ]
+formatoptions = [ 'mp3', 'flac', 'ogg' ]
 
 ###
 # Functiions
 ###
 
 def parseArgs():
-  #TODO: 
-  #   * add format options
-  #   * add seperator options
   ap = (argparse.ArgumentParser(
     description='Create directory structure based on audio tags.'))
   ap.add_argument('--dn',nargs='+',required=True,choices=tagdict, \
                           help='IN ORDER! Directory level tags')
   ap.add_argument('--fn',nargs='+',required=True,choices=tagdict, \
                           help='IN ORDER! Tags for filenames')
-  ap.add_argument('--formats',nargs='+',default=formats,choices=formats, \
-                          help='Formats to search for')
+  ap.add_argument('-f','--formats',nargs='+',default=formatoptions, \
+                  choices=formatoptions,help='Formats to search for')
   ap.add_argument('-s', '--src', default=os.getcwd(),help='Source directory.')
   ap.add_argument('-d','--dst', required=True,help='Destination path') 
   return ap.parse_args()
@@ -103,7 +100,7 @@ def getTagList(f,fun,ext,tagnames):
   return tags
 
 def makeDirStructure(dirs,nametags,ext,source,base):
-  """ Make directory heirarch based on tag order
+  """ Make directory structure based on tag order
   """
   try:
     for tag in dirs:
@@ -127,31 +124,44 @@ def enchilada(encoding,dirs,names,dst):
       made += 1
     except AttributeError or UnboundLocalError:
       pass
-  print "Succesful %s makes: %i" % (encoding[2],made)
+  print "Successful %s makes: %i" % (encoding[2],made)
 
 ###
 # Main
 ###
 
 def main():
-
+  
   #Getting the arguments
   args = parseArgs()
   src = os.path.abspath(args.src)     #Source directory
   dst = os.path.abspath(args.dst)     #Destination
   dirs = getDict(args.dn,tagdict)     #Directory name tags
   names = getDict(args.fn,tagdict)    #Filename tags
+  formats = args.formats
 
-  #Tuple makin'
-  #format = list of files, mutagen function, extension
-  mp3 = getMusic(src,".mp3"), EasyID3, '.mp3'
-  flac = getMusic(src,".flac"), FLAC, '.flac'
-  ogg = getMusic(src,".ogg"), OggVorbis, '.ogg'
+  #Check POSIX environment
+  if os.name is not 'posix':
+    print 'Symmusic requires a posix environment!'
+    sys.exit()
 
-  #The big creation
-  enchilada(mp3,dirs,names,dst)
-  enchilada(flac,dirs,names,dst)
-  enchilada(ogg,dirs,names,dst)
+  #Check that dst isn't inside src
+  if os.path.commonprefix([src, dst]) is src:
+    print 'Destination is inside source. This is not good. Failing!'
+    sys.exit()
+
+  #This is ugly...but there aren't many formats, and it is easy.
+  if 'mp3' in formats:
+    mp3 = getMusic(src,".mp3"), EasyID3, '.mp3'
+    enchilada(mp3,dirs,names,dst)
+
+  if 'flac' in formats:
+    flac = getMusic(src,".flac"), FLAC, '.flac'
+    enchilada(flac,dirs,names,dst)
+
+  if 'ogg' in formats:
+    ogg = getMusic(src,".ogg"), OggVorbis, '.ogg'
+    enchilada(ogg,dirs,names,dst)
   
 if __name__ == '__main__':
     main()
