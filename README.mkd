@@ -5,8 +5,8 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 ###Comparison to similar utitilies
 
 * [pytagsfs][] is an awesome already implemented version of what I'm trying to do. Its much more flexible then what this script will ever be. For instance, it lets your edit your metadata on the fly by simply rearranging material in the virtual filesystem, and can smartly exclude compilations.
-	- *Issues:* Pytagsfs runs through fuse and stores its map of metadata in memory. For small collections this is fine, but this can be resource intensive if you don't really need it. 
-	- *Comparison to symmusic:* Symmusic generates a directory structure and then is done. It uses much less resources, but is also less flexible. Whereas pytagsfs is generates read-write directory structure, symmusic is basically read-only.
+	- *Issues:* Pytagsfs runs through fuse and stores its map of metadata in memory. For small collections this is fine, but this can be resource intensive on large, multiply sorted collections. (Especially if you don't really need all the functionality.) 
+	- *Comparison to symmusic:* Symmusic generates a directory structure and then is done. It uses less resources, but is also less flexible. Whereas pytagsfs generates a read-write directory structure, symmusic's is basically read-only.
 
 * Music reogranizers: a number of utilities exist that will reorganize a directory of music files based on their tags.
 	- *Issues*: This modifies you directory structure and filenames. 
@@ -95,4 +95,5 @@ This will read a users ../music directory, and create a new directory structure 
 [pytagsfs]: http://www.pytagsfs.org/
 [mutagen]: http://code.google.com/p/mutagen/
 [unidecode]: http://pypi.python.org/pypi/Unidecode/ 
+[Subsonic]: http://www.subsonic.org/
 
