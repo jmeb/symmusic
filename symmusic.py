@@ -40,6 +40,7 @@ formatoptions = [ 'mp3', 'flac', 'ogg' ]
 def parseArgs():
   ap = (argparse.ArgumentParser(
     description='Create directory structure based on audio tags.'))
+  ap.add_argument('-v','--verbose',action='store_true',help='Print failures')
   ap.add_argument('--dn',nargs='+',required=True,choices=tagdict, \
                           help='IN ORDER! Directory level tags')
   ap.add_argument('--fn',nargs='+',required=True,choices=tagdict, \
@@ -112,19 +113,23 @@ def makeDirStructure(dirs,nametags,ext,source,base):
   except OSError or AttributeError:
     pass
   
-def enchilada(encoding,dirs,names,dst):
+def enchilada(v,encoding,dirs,names,dst):
   #Dumb count of succesful mp3 symbolic links
   made = 0 
+  fails = []
   for f in encoding[0]:
     try:
       dirtags = getTagList(f,encoding[1],encoding[2],dirs)
       nametags = getTagList(f,encoding[1],encoding[2],names)
-     # print dirtags, nametags
+      #if v is True:
+       # print dirtags, nametags
       makeDirStructure(dirtags,nametags,encoding[2],f,dst)
       made += 1
     except AttributeError or UnboundLocalError:
+      fails.append(f)
       pass
   print "Successful %s makes: %i" % (encoding[2],made)
+  return fails
 
 ###
 # Main
@@ -134,6 +139,7 @@ def main():
   
   #Getting the arguments
   args = parseArgs()
+  verbose = args.verbose              #Is Verbose
   src = os.path.abspath(args.src)     #Source directory
   dst = os.path.abspath(args.dst)     #Destination
   dirs = getDict(args.dn,tagdict)     #Directory name tags
@@ -153,15 +159,21 @@ def main():
   #This is ugly...but there aren't many formats, and it is easy.
   if 'mp3' in formats:
     mp3 = getMusic(src,".mp3"), EasyID3, '.mp3'
-    enchilada(mp3,dirs,names,dst)
+    mp3fails = enchilada(verbose,mp3,dirs,names,dst)
 
   if 'flac' in formats:
     flac = getMusic(src,".flac"), FLAC, '.flac'
-    enchilada(flac,dirs,names,dst)
+    flacfails = enchilada(verbose,flac,dirs,names,dst)
 
   if 'ogg' in formats:
     ogg = getMusic(src,".ogg"), OggVorbis, '.ogg'
-    enchilada(ogg,dirs,names,dst)
+    oggfails = enchilada(verbose,ogg,dirs,names,dst)
+
+  if verbose is True:
+    print '\n' + "FAILURES:" + '\n'
+    print mp3fails
+    print flacfails
+    print oggfails
   
 if __name__ == '__main__':
     main()

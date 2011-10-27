@@ -2,17 +2,29 @@
 
 Symmusic is meant for poorly-named music collections which you don't want to manipulate, but would like a nicer way of browsing. It recursively reads a directory for audio tags and builds a nice directory structure from them. The bottom-level audio files are then symbolically linked to their originating file. This allows one to keep multiple directories organized by artist, genre, album, etc without much disk overhead even for large music collections.
 
-[pytagsfs][] is an awesome already implemented version of what I'm trying to do. Its much more flexible then what this script will ever be. For instance, it lets your edit your metadata on the fly by simply rearranging material in the virtual filesystem, and can smartly exclude compilations.
+###Comparison to similar utitilies
 
-Why reinvent then? Pytagfs runs through fuse, and its map of metadata is stored in memory. This is fine for one-view of a not-too-large music collection. But if you're storing a big music collection, and want to have it listed multiple ways (by artist, by album, by genre) the resources can add up quick. This script is quicker than starting up pytagsfs on a large directory, and doesn't use resources once its done. 
+* [pytagsfs][] is an awesome already implemented version of what I'm trying to do. Its much more flexible then what this script will ever be. For instance, it lets your edit your metadata on the fly by simply rearranging material in the virtual filesystem, and can smartly exclude compilations.
+	- *Issues:* Pytagsfs runs through fuse and stores its map of metadata in memory. For small collections this is fine, but this can be resource intensive if you don't really need it. 
+	- *Comparison to symmusic:* Symmusic generates a directory structure and then is done. It uses much less resources, but is also less flexible. Whereas pytagsfs is generates read-write directory structure, symmusic is basically read-only.
 
-Why do this? 1--I need a bigger python project to learn on. 2--I want to be able to read through my music library easily with any file-based program. 
+* Music reogranizers: a number of utilities exist that will reorganize a directory of music files based on their tags.
+	- *Issues*: This modifies you directory structure and filenames. 
+	- *Comparison to symmusic:* Reorganizers of this sort lock you into one directory structure (unless you keep multiple copies of the audio files around). Symmusic allows you to have multiple views with little overhead. Furthermore it never touches your original data. 
+
+###Example Use Cases
+
+* Use with [Subsonic][] to sort your files in multiple ways.
+* Browse a directory you have read-only access to more nicely.
+* Combine multiple users' poorly organized music folders into one nicely sorted directory without much overhead.
+
 
 ##Features?
 
 * Works with mp3, FLAC, OGGVorbis. Can choose 1, 2 or all 3. 
 * allow command line specification of hierarchy.
 * Return simple count of found files and created symbolic links.
+* If verbose, return list of failed creations that can be redirected.
 
 ###TODO
 
@@ -20,6 +32,7 @@ Why do this? 1--I need a bigger python project to learn on. 2--I want to be able
 	- Longer term, find windows workaround for symbolic links
 * Update only changed/new files in directory (with option for length of time)
 * Warning for --dst inside of --src. (DONE)
+* Find and remove broken symbolic links and empty directories. 
 * Allow complex directory specification (e.g. multiple tags)
 
 ##Use
@@ -40,6 +53,7 @@ Why do this? 1--I need a bigger python project to learn on. 2--I want to be able
 	- will be searched recursively. 
 	- *default*: current working directory.
 * *--dst* : Directory to build new file structure in. **Required**.
+* *-v* : Print a list of failed file paths that can be redirected into a log file.
 
 
 ###Examples
@@ -54,9 +68,9 @@ This will read a users ../music directory, and create a new directory structure 
 
 		symmusic.py --formats mp3 --dn %g %a %l --fn %t --src /music --dst /by-genre
 
-* Sort by: Year / Genre / Album. Filename is Artist - Title:
+* Sort by: Year / Genre / Album. Filename is Artist - Title AND redirect failures to a log file:
 
-		symmusic.py --dn %y %g %l --fn %a %t --src /music --dst /by-year
+		symmusic.py -v --dn %y %g %l --fn %a %t --src /music --dst /by-year > failures.log
 
 * Sort by: Album. Filename is Artist - Year - Title:
 
