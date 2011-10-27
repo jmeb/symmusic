@@ -15,7 +15,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 ###Example Use Cases
 
 * Use with [Subsonic][] to sort your files in multiple ways.
-* Browse a directory you have read-only access to more nicely.
+* Browse a directory you have read-only access to nicely.
 * Combine multiple users' poorly organized music folders into one nicely sorted directory without much overhead.
 
 
