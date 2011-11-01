@@ -13,6 +13,7 @@ import sys
 import os
 import re
 import argparse
+import shutil
 import mutagen
 from mutagen.flac import FLAC  
 from mutagen.easyid3 import EasyID3
@@ -42,7 +43,9 @@ def parseArgs():
     description='Create directory structure based on audio tags.'))
   ap.add_argument('-v','--verbose',action='store_true',help='Print failures')
   ap.add_argument('-c','--clean',action='store_true',help='Clean destination \
-                                  of broken links and empty dirs before creation')
+                              of broken links and empty dirs before creation')
+  ap.add_argument('-n','--number',type=int,help='Minimum number of songs in a \
+                  directory. Use to ward against compilation nightmares.')
   ap.add_argument('--dn',nargs='+',required=True,choices=tagdict, \
                           help='IN ORDER! Directory level tags')
   ap.add_argument('--fn',nargs='+',required=True,choices=tagdict, \
@@ -123,7 +126,6 @@ def removeBrokeLinks(path):
   for root, dirs, files in os.walk(path):
     for fn in files:
       abspath = os.path.join(root,fn)
-      print abspath
       if os.path.exists(abspath) is False:
         print "Removing broken link:", abspath
         os.remove(abspath)
@@ -145,6 +147,26 @@ def removeEmptyDirs(path):
   if len(files) == 0:
     print "Removing empty folder:", path
     os.rmdir(path)
+
+def removeSmallDirs(n,path):
+  """ Remove small directories. Useful to avoid lots of compilation issues"""
+  if not os.path.isdir(path):
+      return
+  files = os.listdir(path)
+  if len(files):
+    for f in files:
+      fullpath = os.path.join(path, f)
+      if os.path.isdir(fullpath):
+        removeSmallDirs(n,fullpath)
+  symcount = 0
+  for f in files:
+    fullpath = os.path.join(path, f)
+    if os.path.islink(fullpath) is True:
+      symcount +=1 
+  if 0 < symcount < n :
+    print "Removing small directory:", path
+    shutil.rmtree(path)
+
 
 def makeDirStructure(dirs,nametags,ext,source,base):
   """ Make directory structure based on tag order
@@ -225,6 +247,11 @@ def main():
     print mp3fails
     print flacfails
     print oggfails
+
+  #Clean out small directories
+  if args.number:
+    print "Removing small directories..."
+    removeSmallDirs(args.number,dst)
   
 if __name__ == '__main__':
     main()

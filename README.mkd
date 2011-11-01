@@ -54,6 +54,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 	- *default*: current working directory.
 * *--dst* : Directory to build new file structure in. **Required**.
 * *-v* : Print a list of failed file paths that can be redirected into a log file.
+* *-n, --number*: Takes an integer. This integer is the minimum number of songs (i.e. symbolic links to songs) that a directory must have at the end of creation. Directories with less will be deleted. Useful for excluding compilations from artist lists.
 * *-c, --clean*: Clean given destination directory of broken symbolic links and empty directories.
 
 
@@ -72,6 +73,10 @@ This will read a users ../music directory, and create a new directory structure 
 * Sort by: Year / Genre / Album. Filename is Artist - Title AND redirect failures to a log file:
 
 		symmusic.py -v --dn %y %g %l --fn %a %t --src /music --dst /by-year > failures.log
+
+* Sort by: Artist / Album. File name is Track Number and Title. Delete all directories with less than 3 songs:
+		
+		symmusic.py -n 3 --dn %a %l --fn %n %t --src /music --dst /by-artist
 
 * Sort by: Album. Filename is Artist - Year - Title:
 
