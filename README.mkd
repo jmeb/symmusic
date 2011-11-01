@@ -22,17 +22,16 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 ##Features?
 
 * Works with mp3, FLAC, OGGVorbis. Can choose 1, 2 or all 3. 
-* allow command line specification of hierarchy.
+* Allow command line specification of hierarchy.
 * Return simple count of found files and created symbolic links.
+* Option to delete broken links and empty directories.
+* Delete directory with a minimum number of songs (useful for excluding compilations.)
 * If verbose, return list of failed creations that can be redirected.
 
 ###TODO
 
-* DONE - Warning/Fail on Windows 
-	- Longer term, find windows workaround for symbolic links
-* DONE - Warning for --dst inside of --src. 
+* Longer term, find windows workaround for symbolic links
 * Find image formats (album covers) and symlink as smartly as possible
-* DONE - Find and remove broken symbolic links and empty directories. 
 * Allow complex directory specification (e.g. multiple tags)
 
 ##Use
