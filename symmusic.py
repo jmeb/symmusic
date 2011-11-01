@@ -167,7 +167,6 @@ def removeSmallDirs(n,path):
     print "Removing small directory:", path
     shutil.rmtree(path)
 
-
 def makeDirStructure(dirs,nametags,ext,source,base):
   """ Make directory structure based on tag order
   """
