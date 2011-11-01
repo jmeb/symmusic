@@ -41,6 +41,8 @@ def parseArgs():
   ap = (argparse.ArgumentParser(
     description='Create directory structure based on audio tags.'))
   ap.add_argument('-v','--verbose',action='store_true',help='Print failures')
+  ap.add_argument('-c','--clean',action='store_true',help='Clean destination \
+                                  of broken links and empty dirs before creation')
   ap.add_argument('--dn',nargs='+',required=True,choices=tagdict, \
                           help='IN ORDER! Directory level tags')
   ap.add_argument('--fn',nargs='+',required=True,choices=tagdict, \
@@ -100,6 +102,50 @@ def getTagList(f,fun,ext,tagnames):
     tags.append(tag)
   return tags
 
+#Not implemented
+def getAlbumArt(source,newbase):
+  """ Check for image formats in newbase, if not there try to 
+  symlink over from source """
+# Better to not call this on every file lookup....
+# Therefore: should be implemented after directory creation
+# Query all bottom level created directories. Get first symlink, 
+# check where it points, take the base path of destination (i.e. containing
+# directory), look for image file formats, if found, symlink
+
+
+def cleanDestination(dst):
+  """Check the created directory for broken links and remove at the git go.
+  Remove any empty directories """
+  removeBrokeLinks(dst)
+  removeEmptyDirs(dst)
+
+def removeBrokeLinks(path):
+  for root, dirs, files in os.walk(path):
+    for fn in files:
+      abspath = os.path.join(root,fn)
+      print abspath
+      if os.path.exists(abspath) is False:
+        print "Removing broken link:", abspath
+        os.remove(abspath)
+
+def removeEmptyDirs(path):
+  """ Remove empty directories recusively
+  From: http://dev.enekoalonso.com/2011/08/06/python-script-remove-empty-folders/"""
+  if not os.path.isdir(path):
+    return
+  # remove empty subfolders
+  files = os.listdir(path)
+  if len(files):
+    for f in files:
+      fullpath = os.path.join(path, f)
+      if os.path.isdir(fullpath):
+        removeEmptyDirs(fullpath)
+  # if folder empty, delete it
+  files = os.listdir(path)
+  if len(files) == 0:
+    print "Removing empty folder:", path
+    os.rmdir(path)
+
 def makeDirStructure(dirs,nametags,ext,source,base):
   """ Make directory structure based on tag order
   """
@@ -156,6 +202,11 @@ def main():
     print 'Destination is inside source. This is not good. Failing!'
     sys.exit()
 
+  #Clean stuff up if requested
+  if args.clean is True:
+    print "Cleaning"
+    cleanDestination(dst)
+    
   #This is ugly...but there aren't many formats, and it is easy.
   if 'mp3' in formats:
     mp3 = getMusic(src,".mp3"), EasyID3, '.mp3'

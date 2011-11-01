@@ -28,11 +28,11 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 
 ###TODO
 
-* Warning/Fail on Windows (DONE)
+* DONE - Warning/Fail on Windows 
 	- Longer term, find windows workaround for symbolic links
-* Update only changed/new files in directory (with option for length of time)
-* Warning for --dst inside of --src. (DONE)
-* Find and remove broken symbolic links and empty directories. 
+* DONE - Warning for --dst inside of --src. 
+* Find image formats (album covers) and symlink as smartly as possible
+* DONE - Find and remove broken symbolic links and empty directories. 
 * Allow complex directory specification (e.g. multiple tags)
 
 ##Use
@@ -54,6 +54,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 	- *default*: current working directory.
 * *--dst* : Directory to build new file structure in. **Required**.
 * *-v* : Print a list of failed file paths that can be redirected into a log file.
+* *-c, --clean*: Clean given destination directory of broken symbolic links and empty directories.
 
 
 ###Examples
