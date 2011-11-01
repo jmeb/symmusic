@@ -223,11 +223,6 @@ def main():
     print 'Destination is inside source. This is not good. Failing!'
     sys.exit()
 
-  #Clean stuff up if requested
-  if args.clean is True:
-    print "Cleaning"
-    cleanDestination(dst)
-    
   #This is ugly...but there aren't many formats, and it is easy.
   if 'mp3' in formats:
     mp3 = getMusic(src,".mp3"), EasyID3, '.mp3'
@@ -243,15 +238,20 @@ def main():
 
   if verbose is True:
     print '\n' + "FAILURES:" + '\n'
-    print mp3fails
-    print flacfails
-    print oggfails
+    print mp3fails, flacfails, oggfails
 
   #Clean out small directories
   if args.number:
     print "Removing small directories..."
     removeSmallDirs(args.number,dst)
+    print "Cleaning..."
+    cleanDestination(dst)
   
+  #Clean stuff up if requested
+  if args.clean is True:
+    print "Cleaning..."
+    cleanDestination(dst)
+
 if __name__ == '__main__':
     main()
 

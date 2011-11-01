@@ -54,7 +54,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 	- *default*: current working directory.
 * *--dst* : Directory to build new file structure in. **Required**.
 * *-v* : Print a list of failed file paths that can be redirected into a log file.
-* *-n, --number*: Takes an integer. This integer is the minimum number of songs (i.e. symbolic links to songs) that a directory must have at the end of creation. Directories with less will be deleted. Useful for excluding compilations from artist lists.
+* *-n, --number*: Takes an integer. This integer is the minimum number of songs (i.e. symbolic links to songs) that a directory must have at the end of creation. Directories with less will be deleted. Useful for excluding compilations from artist lists. Use of this option implies *--clean*.
 * *-c, --clean*: Clean given destination directory of broken symbolic links and empty directories.
 
 
