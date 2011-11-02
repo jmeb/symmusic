@@ -32,7 +32,7 @@ tagdict = {
     '%y' : 'date',
     }
     
-formatoptions = [ 'mp3', 'flac', 'ogg' ]
+formatlist = [ 'mp3', 'flac', 'ogg' ]
 
 ###
 # Functiions
@@ -42,6 +42,7 @@ def parseArgs():
   ap = (argparse.ArgumentParser(
     description='Create directory structure based on audio tags.'))
   ap.add_argument('-v','--verbose',action='store_true',help='Print failures')
+  ap.add_argument('-a','--art',action='store_true',help='Copy album art')
   ap.add_argument('-c','--clean',action='store_true',help='Clean destination \
                               of broken links and empty dirs before creation')
   ap.add_argument('-n','--number',type=int,help='Minimum number of songs in a \
@@ -50,13 +51,14 @@ def parseArgs():
                           help='IN ORDER! Directory level tags')
   ap.add_argument('--fn',nargs='+',required=True,choices=tagdict, \
                           help='IN ORDER! Tags for filenames')
-  ap.add_argument('-f','--formats',nargs='+',default=formatoptions, \
-                  choices=formatoptions,help='Formats to search for')
+  ap.add_argument('-f','--formats',nargs='+',default=formatlist, \
+                  choices=formatlist,help='Formats to search for')
   ap.add_argument('-s', '--src', default=os.getcwd(),help='Source directory.')
   ap.add_argument('-d','--dst', required=True,help='Destination path') 
   return ap.parse_args()
 
 def getDict(args,dictionary):
+  """ Convert formats to extension labels. Return a list """
   tags = []
   for t in args:
     tags.append(dictionary[t])
@@ -74,8 +76,7 @@ def getMusic(src,pattern):
   return musiclist
 
 def getTag(f,fun,tagname):
-  """ Get an mp3 tag, fail without fanfare
-  """
+  """ Get an mp3 tag, fail without fanfare """
   try:
     tags = fun(f)
   except ValueError:
@@ -84,7 +85,7 @@ def getTag(f,fun,tagname):
     try:
       tag = tags[tagname][0]
       if tag:
-        cleaned = tag.encode('UTF-8') #unidecode()?
+        cleaned = tag.encode('UTF-8') 
         slashproofed = re.sub(r"/","-",cleaned) #Hack....
         return slashproofed
       else:
@@ -95,8 +96,7 @@ def getTag(f,fun,tagname):
       return 'Unknown'
   
 def getTagList(f,fun,ext,tagnames):
-  """ Get multiple tags for a file, based on a given list
-  """
+  """ Get multiple tags for a file, based on a given list """
   tags = []
   for tagname in tagnames:
     tag = getTag(f,fun,tagname)
@@ -105,24 +105,31 @@ def getTagList(f,fun,ext,tagnames):
     tags.append(tag)
   return tags
 
-#Not implemented
-def getAlbumArt(source,newbase):
+def copyAlbumArt(pattern,dst):
   """ Check for image formats in newbase, if not there try to 
   symlink over from source """
-# Better to not call this on every file lookup....
-# Therefore: should be implemented after directory creation
-# Query all bottom level created directories. Get first symlink, 
-# check where it points, take the base path of destination (i.e. containing
-# directory), look for image file formats, if found, symlink
-
+  print "Copying Album Art...."
+  for root, dirs, files, in os.walk(dst):
+    for fn in files:
+      abspath = os.path.join(root,fn)
+      dirpath = os.path.dirname(abspath)
+      origin = os.readlink(abspath)
+      origindir = os.path.dirname(origin)
+      for oroot, odirs, ofiles, in os.walk(origindir):
+        for f in ofiles:
+          if f.endswith(pattern):
+            if os.path.exists(os.path.join(dirpath,f)) is False:
+              os.symlink(os.path.join(oroot,f),os.path.join(dirpath,f))
 
 def cleanDestination(dst):
-  """Check the created directory for broken links and remove at the git go.
+  """Check the created directory for broken links and remove them.
   Remove any empty directories """
+  print "Cleaning..."
   removeBrokeLinks(dst)
   removeEmptyDirs(dst)
 
 def removeBrokeLinks(path):
+  """ Remove any broken symbolic links"""
   for root, dirs, files in os.walk(path):
     for fn in files:
       abspath = os.path.join(root,fn)
@@ -131,18 +138,16 @@ def removeBrokeLinks(path):
         os.remove(abspath)
 
 def removeEmptyDirs(path):
-  """ Remove empty directories recusively
-  From: http://dev.enekoalonso.com/2011/08/06/python-script-remove-empty-folders/"""
+  """ Remove empty directories recusively. Taken from:
+  http://dev.enekoalonso.com/2011/08/06/python-script-remove-empty-folders/"""
   if not os.path.isdir(path):
     return
-  # remove empty subfolders
   files = os.listdir(path)
   if len(files):
     for f in files:
       fullpath = os.path.join(path, f)
       if os.path.isdir(fullpath):
         removeEmptyDirs(fullpath)
-  # if folder empty, delete it
   files = os.listdir(path)
   if len(files) == 0:
     print "Removing empty folder:", path
@@ -150,6 +155,7 @@ def removeEmptyDirs(path):
 
 def removeSmallDirs(n,path):
   """ Remove small directories. Useful to avoid lots of compilation issues"""
+  print "Removing small directories..."
   if not os.path.isdir(path):
       return
   files = os.listdir(path)
@@ -180,16 +186,15 @@ def makeDirStructure(dirs,nametags,ext,source,base):
   except OSError or AttributeError:
     pass
   
-def enchilada(v,encoding,dirs,names,dst):
-  #Dumb count of succesful mp3 symbolic links
+def theWholeEnchilada(encoding,dirs,names,dst):
+  """ A wrapper to bring everything together. Returns file paths that
+  failed to create a symbolic link. """
   made = 0 
   fails = []
   for f in encoding[0]:
     try:
       dirtags = getTagList(f,encoding[1],encoding[2],dirs)
       nametags = getTagList(f,encoding[1],encoding[2],names)
-      #if v is True:
-       # print dirtags, nametags
       makeDirStructure(dirtags,nametags,encoding[2],f,dst)
       made += 1
     except AttributeError or UnboundLocalError:
@@ -206,12 +211,11 @@ def main():
   
   #Getting the arguments
   args = parseArgs()
-  verbose = args.verbose              #Is Verbose
   src = os.path.abspath(args.src)     #Source directory
   dst = os.path.abspath(args.dst)     #Destination
   dirs = getDict(args.dn,tagdict)     #Directory name tags
   names = getDict(args.fn,tagdict)    #Filename tags
-  formats = args.formats
+  formats = args.formats              #Formats 
 
   #Check POSIX environment
   if os.name is not 'posix':
@@ -226,31 +230,33 @@ def main():
   #This is ugly...but there aren't many formats, and it is easy.
   if 'mp3' in formats:
     mp3 = getMusic(src,".mp3"), EasyID3, '.mp3'
-    mp3fails = enchilada(verbose,mp3,dirs,names,dst)
+    mp3fails = theWholeEnchilada(mp3,dirs,names,dst)
 
   if 'flac' in formats:
     flac = getMusic(src,".flac"), FLAC, '.flac'
-    flacfails = enchilada(verbose,flac,dirs,names,dst)
+    flacfails = theWholeEnchilada(flac,dirs,names,dst)
 
   if 'ogg' in formats:
     ogg = getMusic(src,".ogg"), OggVorbis, '.ogg'
-    oggfails = enchilada(verbose,ogg,dirs,names,dst)
+    oggfails = theWholeEnchilada(ogg,dirs,names,dst)
 
-  if verbose is True:
+  #Print failed lists for redicection
+  if args.verbose is True:
     print '\n' + "FAILURES:" + '\n'
     print mp3fails, flacfails, oggfails
 
   #Clean out small directories
   if args.number:
-    print "Removing small directories..."
     removeSmallDirs(args.number,dst)
-    print "Cleaning..."
     cleanDestination(dst)
   
-  #Clean stuff up if requested
+  #Clean desitnation of empty dirs and broken links.
   if args.clean is True:
-    print "Cleaning..."
     cleanDestination(dst)
+
+  #Copy album art if requested
+  if args.art is True:
+    copyAlbumArt('.jpg',dst)
 
 if __name__ == '__main__':
     main()
