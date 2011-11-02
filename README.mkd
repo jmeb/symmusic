@@ -23,6 +23,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 
 * Works with mp3, FLAC, OGGVorbis. Can choose 1, 2 or all 3. 
 * Allow command line specification of hierarchy.
+* Optionally symbolically link artwork (.jpg) into new directory.
 * Return simple count of found files and created symbolic links.
 * Option to delete broken links and empty directories.
 * Delete directory with a minimum number of songs (useful for excluding compilations.)
@@ -31,16 +32,14 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 ###TODO
 
 * Longer term, find windows workaround for symbolic links
-* Find image formats (album covers) and symlink as smartly as possible
 * Allow complex directory specification (e.g. multiple tags)
 
 ##Use
 
 ###Command line options
 
-* *--formats* (*-f*): specify audio formats to search and parse
-	- *options*: mp3 , ogg , flac
-	- *default*: All (mp3, ogg, flac)
+####Required
+
 * *--dn* : directory names. **Required**.
 	- each argument will create a directory level. Follows given order.
 	- *options*: %a (artist), %l (album), %g (genre), %n (track number), %t (track title), %y (year/date)
@@ -48,10 +47,17 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 * *--fn* : File name. **Required**.
 	- each argument will be added to the file name separated by a hyphen. All files will have proper file extension added.
 	- *options*: %a (artist), %l (album), %g (genre), %n (track number), %t (track title), %y (year/date)
+* *--dst* : Directory to build new file structure in. **Required**.
+
+####Optional
+
+* *--formats* (*-f*): specify audio formats to search and parse
+	- *options*: mp3 , ogg , flac
+	- *default*: All (mp3, ogg, flac)
 * *--src* : Directory to search for music files.
 	- will be searched recursively. 
 	- *default*: current working directory.
-* *--dst* : Directory to build new file structure in. **Required**.
+* *-a, --art*: symbolically link .jpg files from origin directories into new structure.
 * *-v* : Print a list of failed file paths that can be redirected into a log file.
 * *-n, --number*: Takes an integer. This integer is the minimum number of songs (i.e. symbolic links to songs) that a directory must have at the end of creation. Directories with less will be deleted. Useful for excluding compilations from artist lists. Use of this option implies *--clean*.
 * *-c, --clean*: Clean given destination directory of broken symbolic links and empty directories.
