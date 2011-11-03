@@ -79,7 +79,7 @@ def getTag(f,fun,tagname):
   """ Get an mp3 tag, fail without fanfare """
   try:
     tags = fun(f)
-  except ValueError:
+  except (ValueError,  mutagen.flac.FLACNoHeaderError):
     tags = 'Unknown'
   if tags.has_key(tagname):
     try:
@@ -183,7 +183,7 @@ def makeDirStructure(dirs,nametags,ext,source,base):
       base = os.path.join(base,tag)
     name = " - ".join(nametags) + ext
     os.symlink(source,os.path.join(base,name))
-  except OSError or AttributeError:
+  except (OSError,  AttributeError):
     pass
   
 def theWholeEnchilada(encoding,dirs,names,dst):
