@@ -1,37 +1,27 @@
-##Overview
+#Overview
 
 Symmusic is meant for poorly-named music collections which you don't want to manipulate, but would like a nicer way of browsing. It recursively reads a directory for audio tags and builds a nice directory structure from them. The bottom-level audio files are then symbolically linked to their originating file. This allows one to keep multiple directories organized by artist, genre, album, etc without much disk overhead even for large music collections.
 
-###Comparison to similar utitilies
+###Dependencies
 
-* [pytagsfs][] is an awesome already implemented version of what I'm trying to do. Its much more flexible then what this script will ever be. For instance, it lets your edit your metadata on the fly by simply rearranging material in the virtual filesystem, and can smartly exclude compilations.
-	- *Issues:* Pytagsfs runs through fuse and stores its map of metadata in memory. For small collections this is fine, but this can be resource intensive on large, multiply sorted collections. (Especially if you don't really need all the functionality.) 
-	- *Comparison to symmusic:* Symmusic generates a directory structure and then is done. It uses less resources, but is also less flexible. Whereas pytagsfs generates a read-write directory structure, symmusic's is basically read-only.
+* UNIX-like OS. (Linux, Mac OSX)
+* Python (2.6 and more)
+* [mutagen][] -- a python module to handle audio metatdata
 
-* Music reogranizers: a number of utilities exist that will reorganize a directory of music files based on their tags.
-	- *Issues*: This modifies you directory structure and filenames. 
-	- *Comparison to symmusic:* Reorganizers of this sort lock you into one directory structure (unless you keep multiple copies of the audio files around). Symmusic allows you to have multiple views with little overhead. Furthermore it never touches your original data. 
-
-###Example Use Cases
-
-* Use with [Subsonic][] to sort your files in multiple ways.
-* Browse a directory you have read-only access to nicely.
-* Combine multiple users' poorly organized music folders into one nicely sorted directory without much overhead.
-
-
-##Features?
+#Features
 
 * Works with mp3, FLAC, OGGVorbis. Can choose 1, 2 or all 3. 
-* Allow command line specification of hierarchy.
-* Optionally symbolically link artwork (.jpg) into new directory.
+* Command line specification of hierarchy based on audio tags.
 * Return simple count of found files and created symbolic links.
-* Option to delete broken links and empty directories.
-* Delete directory with a minimum number of songs (useful for excluding compilations.)
-* If verbose, return list of failed creations that can be redirected.
+* (Option) Symbolically link artwork (.jpg) into new directory.
+* (Option) Delete directory with a minimum number of songs (useful for excluding compilations.)
+* (Option) Delete broken links and empty directories.
+* (Option) Return list of failed creations that can be redirected.
 
 ###TODO
 
 * Longer term, find windows workaround for symbolic links
+* Option to only sort recently updated files.
 * Allow complex directory specification (e.g. multiple tags)
 
 ##Use
@@ -65,15 +55,23 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 
 ###Examples
 
+###Example Use Cases
+
+* Use with [Subsonic][] to sort your files in multiple ways.
+* Browse a directory you have read-only access to nicely.
+* Combine multiple users' poorly organized music folders into one nicely sorted directory without much overhead.
+
+###Syntax
+
 A basic syntax example:
 
 		symmusic.py --dn %a %l --fn %n %t --src /home/user/music --dst /home/user/music-by-artist
 
 This will read a users ../music directory, and create a new directory structure in ../music-by-artist. The new structure will have three levels: artist (a) > album (l) > filenames (n t). Note that directory structure is based on order of options, with the leftmost option being the highest level directory. The filename is the track number (n), and title (t). Symbolic links will resolve back to the ../music directory. All except the '--src' argument are required (--src defaults to the working directory if not specified.)
 
-* Sort only mp3s by: Genre / Artist / Album. Filename is Number - Title:
+* Sort only mp3s by: Genre / Artist / Album. Filename is Number - Title, and include album art:
 
-		symmusic.py --formats mp3 --dn %g %a %l --fn %t --src /music --dst /by-genre
+		symmusic.py -a --formats mp3 --dn %g %a %l --fn %t --src /music --dst /by-genre
 
 * Sort by: Year / Genre / Album. Filename is Artist - Title AND redirect failures to a log file:
 
@@ -95,12 +93,16 @@ This will read a users ../music directory, and create a new directory structure 
 
 * I wouldn't put much faith in the 'files created' number that is printed. Its a dumb counter. 
 
-###Dependencies
 
-* UNIX-like OS. (Linux, Mac OSX)
-* Python (2.6)
-* [mutagen][] -- a python module to handle audio metatdata
+###Comparison to similar utitilies
 
+* [pytagsfs][] is an awesome already implemented version of what I'm trying to do. Its much more flexible then what this script will ever be. For instance, it lets your edit your metadata on the fly by simply rearranging material in the virtual filesystem, and can smartly exclude compilations.
+	- *Issues:* Pytagsfs runs through fuse and stores its map of metadata in memory. For small collections this is fine, but this can be resource intensive on large, multiply sorted collections. (Especially if you don't really need all the functionality.) 
+	- *Comparison to symmusic:* Symmusic generates a directory structure and then is done. It uses less resources, but is also less flexible. Whereas pytagsfs generates a read-write directory structure, symmusic's is basically read-only.
+
+* Music reogranizers: a number of utilities exist that will reorganize a directory of music files based on their tags.
+	- *Issues*: This modifies you directory structure and filenames. 
+	- *Comparison to symmusic:* Reorganizers of this sort lock you into one directory structure (unless you keep multiple copies of the audio files around). Symmusic allows you to have multiple views with little overhead. Furthermore it never touches your original data. 
 
 
 [pytagsfs]: http://www.pytagsfs.org/

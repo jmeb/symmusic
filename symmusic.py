@@ -155,7 +155,6 @@ def removeEmptyDirs(path):
 
 def removeSmallDirs(n,path):
   """ Remove small directories. Useful to avoid lots of compilation issues"""
-  print "Removing small directories..."
   if not os.path.isdir(path):
       return
   files = os.listdir(path)
