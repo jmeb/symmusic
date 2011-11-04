@@ -22,6 +22,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 
 * Longer term, find windows workaround for symbolic links
 * Option to only sort recently updated files.
+* Option to write relative rather than absolute path links.
 * Allow complex directory specification (e.g. multiple tags)
 
 ##Use

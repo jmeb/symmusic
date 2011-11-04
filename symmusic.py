@@ -1,7 +1,9 @@
 #! /usr/bin/env python
 #
-# This program is free software.
-# If it is ever distributed it is under a beerware license
+# "THE BEER-WARE LICENSE" (Revision 42):
+# jmeb wrote this file. As long as you retain this notice you
+# can do whatever you want with this stuff. If we meet some day, and you think
+# this stuff is worth it, you can buy me a beer in return. 
 #
 #
 
@@ -109,6 +111,7 @@ def copyAlbumArt(pattern,dst):
   """ Check for image formats in newbase, if not there try to 
   symlink over from source """
   print "Copying Album Art...."
+  symlinks = 0
   for root, dirs, files, in os.walk(dst):
     for fn in files:
       abspath = os.path.join(root,fn)
@@ -120,24 +123,31 @@ def copyAlbumArt(pattern,dst):
           if f.endswith(pattern):
             if os.path.exists(os.path.join(dirpath,f)) is False:
               os.symlink(os.path.join(oroot,f),os.path.join(dirpath,f))
+              symlinks += 1
+  return symlinks
 
-def cleanDestination(dst):
+def cleanDestination(v,dst):
   """Check the created directory for broken links and remove them.
   Remove any empty directories """
   print "Cleaning..."
-  removeBrokeLinks(dst)
-  removeEmptyDirs(dst)
+  brokelinks = removeBrokeLinks(v,dst)
+  removeEmptyDirs(v,dst)
+  return brokelinks
 
-def removeBrokeLinks(path):
+def removeBrokeLinks(v,path):
   """ Remove any broken symbolic links"""
+  brokelinks = 0
   for root, dirs, files in os.walk(path):
     for fn in files:
       abspath = os.path.join(root,fn)
       if os.path.exists(abspath) is False:
-        print "Removing broken link:", abspath
         os.remove(abspath)
+        brokelinks += 1
+        if v is True:
+          print "Removing broken link:", abspath
+  return brokelinks
 
-def removeEmptyDirs(path):
+def removeEmptyDirs(v,path):
   """ Remove empty directories recusively. Taken from:
   http://dev.enekoalonso.com/2011/08/06/python-script-remove-empty-folders/"""
   if not os.path.isdir(path):
@@ -147,13 +157,14 @@ def removeEmptyDirs(path):
     for f in files:
       fullpath = os.path.join(path, f)
       if os.path.isdir(fullpath):
-        removeEmptyDirs(fullpath)
+        removeEmptyDirs(v,fullpath)
   files = os.listdir(path)
   if len(files) == 0:
-    print "Removing empty folder:", path
     os.rmdir(path)
+    if v is True:
+      print "Removing empty folder:", path
 
-def removeSmallDirs(n,path):
+def removeSmallDirs(n,v,path):
   """ Remove small directories. Useful to avoid lots of compilation issues"""
   if not os.path.isdir(path):
       return
@@ -162,15 +173,16 @@ def removeSmallDirs(n,path):
     for f in files:
       fullpath = os.path.join(path, f)
       if os.path.isdir(fullpath):
-        removeSmallDirs(n,fullpath)
+        removeSmallDirs(n,v,fullpath)
   symcount = 0
   for f in files:
     fullpath = os.path.join(path, f)
     if os.path.islink(fullpath) is True:
       symcount +=1 
   if 0 < symcount < n :
-    print "Removing small directory:", path
     shutil.rmtree(path)
+    if v is True:
+      print "Removing small directory:", path
 
 def makeDirStructure(dirs,nametags,ext,source,base):
   """ Make directory structure based on tag order
@@ -215,6 +227,10 @@ def main():
   dirs = getDict(args.dn,tagdict)     #Directory name tags
   names = getDict(args.fn,tagdict)    #Filename tags
   formats = args.formats              #Formats 
+  verbose = args.verbose              #Verbose
+  art = args.art                      #Artwork
+  clean = args.clean                  #Clean destination
+  number = args.number                #Minimium number for small dirs
 
   #Check POSIX environment
   if os.name is not 'posix':
@@ -240,22 +256,24 @@ def main():
     oggfails = theWholeEnchilada(ogg,dirs,names,dst)
 
   #Print failed lists for redicection
-  if args.verbose is True:
+  if verbose is True:
     print '\n' + "FAILURES:" + '\n'
     print mp3fails, flacfails, oggfails
 
   #Clean out small directories
-  if args.number:
-    removeSmallDirs(args.number,dst)
-    cleanDestination(dst)
+  if number:
+    removeSmallDirs(args.number,verbose,dst)
+    clean = True
   
   #Clean desitnation of empty dirs and broken links.
-  if args.clean is True:
-    cleanDestination(dst)
+  if clean is True:
+    brokelinks = cleanDestination(verbose,dst)
+    print "Broken links removed: ", brokelinks
 
   #Copy album art if requested
-  if args.art is True:
-    copyAlbumArt('.jpg',dst)
+  if art is True:
+    artmakes = copyAlbumArt('.jpg',dst)
+    print "Artwork images copied:", artmakes
 
 if __name__ == '__main__':
     main()
