@@ -23,6 +23,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 
 * Longer term, find windows workaround for symbolic links
 * Option to write relative rather than absolute path links.
+* Rewrite Artwork copy to work in conjunction with --hours flag. (i.e. don't search every directory.)
 * Allow complex directory specification (e.g. multiple tags)
 
 ##Use
