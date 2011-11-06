@@ -15,6 +15,7 @@ import sys
 import os
 import re
 import argparse
+import time
 import shutil
 import mutagen
 from mutagen.flac import FLAC  
@@ -37,7 +38,7 @@ tagdict = {
 formatlist = [ 'mp3', 'flac', 'ogg' ]
 
 ###
-# Functiions
+# Functions
 ###
 
 def parseArgs():
@@ -49,6 +50,7 @@ def parseArgs():
                               of broken links and empty dirs before creation')
   ap.add_argument('-n','--number',type=int,help='Minimum number of songs in a \
                   directory. Use to ward against compilation nightmares.')
+  ap.add_argument('--hours',type=int,help='Only use files modified in past N hours')
   ap.add_argument('--dn',nargs='+',required=True,choices=tagdict, \
                           help='IN ORDER! Directory level tags')
   ap.add_argument('--fn',nargs='+',required=True,choices=tagdict, \
@@ -106,6 +108,40 @@ def getTagList(f,fun,ext,tagnames):
       tag = tag + ' [' + ext + ']'
     tags.append(tag)
   return tags
+
+def makeDirStructure(dirs,nametags,ext,source,base):
+  """ Make directory structure based on tag order
+  """
+  try:
+    for tag in dirs:
+      if os.path.exists(os.path.join(base,tag)) is False:
+        os.makedirs(os.path.join(base,tag))
+      base = os.path.join(base,tag)
+    name = " - ".join(nametags) + ext
+    os.symlink(source,os.path.join(base,name))
+  except (OSError,  AttributeError):
+    pass
+  
+def theWholeEnchilada(encoding,dirs,names,dst):
+  """ A wrapper to bring everything together. Returns file paths that
+  failed to create a symbolic link. """
+  made = 0 
+  fails = []
+  for f in encoding[0]:
+    try:
+      dirtags = getTagList(f,encoding[1],encoding[2],dirs)
+      nametags = getTagList(f,encoding[1],encoding[2],names)
+      makeDirStructure(dirtags,nametags,encoding[2],f,dst)
+      made += 1
+    except AttributeError or UnboundLocalError:
+      fails.append(f)
+      pass
+  print "Successful %s makes: %i" % (encoding[2],made)
+  return fails
+
+###
+# Optional functions
+###
 
 def copyAlbumArt(pattern,dst):
   """ Check for image formats in newbase, if not there try to 
@@ -184,35 +220,14 @@ def removeSmallDirs(n,v,path):
     if v is True:
       print "Removing small directory:", path
 
-def makeDirStructure(dirs,nametags,ext,source,base):
-  """ Make directory structure based on tag order
-  """
-  try:
-    for tag in dirs:
-      if os.path.exists(os.path.join(base,tag)) is False:
-        os.makedirs(os.path.join(base,tag))
-      base = os.path.join(base,tag)
-    name = " - ".join(nametags) + ext
-    os.symlink(source,os.path.join(base,name))
-  except (OSError,  AttributeError):
-    pass
-  
-def theWholeEnchilada(encoding,dirs,names,dst):
-  """ A wrapper to bring everything together. Returns file paths that
-  failed to create a symbolic link. """
-  made = 0 
-  fails = []
-  for f in encoding[0]:
-    try:
-      dirtags = getTagList(f,encoding[1],encoding[2],dirs)
-      nametags = getTagList(f,encoding[1],encoding[2],names)
-      makeDirStructure(dirtags,nametags,encoding[2],f,dst)
-      made += 1
-    except AttributeError or UnboundLocalError:
-      fails.append(f)
-      pass
-  print "Successful %s makes: %i" % (encoding[2],made)
-  return fails
+def getRecentFiles(files,hours):
+  recentfiles = []
+  modseconds = time.time() - ( hours * 3600 )
+  for f in files:
+    if os.path.getmtime(f) > modseconds:
+      recentfiles.append(f)
+  print "Files modified in the past %i hours: " % (hours), len(recentfiles) 
+  return recentfiles    
 
 ###
 # Main
@@ -230,7 +245,8 @@ def main():
   verbose = args.verbose              #Verbose
   art = args.art                      #Artwork
   clean = args.clean                  #Clean destination
-  number = args.number                #Minimium number for small dirs
+  number = args.number                #Minimum number for small dirs
+  hours = args.hours
 
   #Check POSIX environment
   if os.name is not 'posix':
@@ -244,18 +260,24 @@ def main():
 
   #This is ugly...but there aren't many formats, and it is easy.
   if 'mp3' in formats:
-    mp3 = getMusic(src,".mp3"), EasyID3, '.mp3'
+    mp3 = [ getMusic(src,".mp3"), EasyID3, '.mp3' ]
+    if hours:
+      mp3[0] = getRecentFiles(mp3[0],hours)
     mp3fails = theWholeEnchilada(mp3,dirs,names,dst)
 
   if 'flac' in formats:
-    flac = getMusic(src,".flac"), FLAC, '.flac'
+    flac = [ getMusic(src,".flac"), FLAC, '.flac' ]
+    if hours:
+      flac[0] = getRecentFiles(flac[0],hours)
     flacfails = theWholeEnchilada(flac,dirs,names,dst)
 
   if 'ogg' in formats:
-    ogg = getMusic(src,".ogg"), OggVorbis, '.ogg'
+    ogg = [ getMusic(src,".ogg"), OggVorbis, '.ogg' ]
+    if hours:
+      ogg[0] = getRecentFiles(ogg[0],hours)
     oggfails = theWholeEnchilada(ogg,dirs,names,dst)
 
-  #Print failed lists for redicection
+  #Print failed lists for redirection
   if verbose is True:
     print '\n' + "FAILURES:" + '\n'
     print mp3fails, flacfails, oggfails
@@ -265,7 +287,7 @@ def main():
     removeSmallDirs(args.number,verbose,dst)
     clean = True
   
-  #Clean desitnation of empty dirs and broken links.
+  #Clean destination of empty dirs and broken links.
   if clean is True:
     brokelinks = cleanDestination(verbose,dst)
     print "Broken links removed: ", brokelinks

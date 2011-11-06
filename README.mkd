@@ -14,6 +14,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 * Command line specification of hierarchy based on audio tags.
 * Return simple count of found files and created symbolic links.
 * (Option) Symbolically link artwork (.jpg) into new directory.
+* (Option) Only query and build links to recently added/modified files.
 * (Option) Delete directory with a minimum number of songs (useful for excluding compilations.)
 * (Option) Delete broken links and empty directories.
 * (Option) Return list of failed creations that can be redirected.
@@ -21,7 +22,6 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 ###TODO
 
 * Longer term, find windows workaround for symbolic links
-* Option to only sort recently updated files.
 * Option to write relative rather than absolute path links.
 * Allow complex directory specification (e.g. multiple tags)
 
@@ -48,6 +48,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 * *--src* : Directory to search for music files.
 	- will be searched recursively. 
 	- *default*: current working directory.
+* *--hours* : Only query and build links to files modified in the last N hours. Takes an integer.
 * *-a, --art*: symbolically link .jpg files from origin directories into new structure.
 * *-v* : Print a list of failed file paths that can be redirected into a log file.
 * *-n, --number*: Takes an integer. This integer is the minimum number of songs (i.e. symbolic links to songs) that a directory must have at the end of creation. Directories with less will be deleted. Useful for excluding compilations from artist lists. Use of this option implies *--clean*.
