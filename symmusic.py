@@ -122,12 +122,15 @@ def makeDirStructure(dirs,nametags,ext,source,base):
   except (OSError,  AttributeError):
     pass
   
-def theWholeEnchilada(encoding,dirs,names,dst):
+def theWholeEnchilada(encoding,dirs,names,dst,hours):
   """ A wrapper to bring everything together. Returns file paths that
   failed to create a symbolic link. """
   made = 0 
   fails = []
-  for f in encoding[0]:
+  files = encoding[0]
+  if hours > 0:
+    files = getRecentFiles(files,hours)
+  for f in files:
     try:
       dirtags = getTagList(f,encoding[1],encoding[2],dirs)
       nametags = getTagList(f,encoding[1],encoding[2],names)
@@ -258,24 +261,22 @@ def main():
     print 'Destination is inside source. This is not good. Failing!'
     sys.exit()
 
+  #Set hours to 0 if not set.
+  if not hours:
+    hours = 0
+
   #This is ugly...but there aren't many formats, and it is easy.
   if 'mp3' in formats:
     mp3 = [ getMusic(src,".mp3"), EasyID3, '.mp3' ]
-    if hours:
-      mp3[0] = getRecentFiles(mp3[0],hours)
-    mp3fails = theWholeEnchilada(mp3,dirs,names,dst)
+    mp3fails = theWholeEnchilada(mp3,dirs,names,dst,hours)
 
   if 'flac' in formats:
     flac = [ getMusic(src,".flac"), FLAC, '.flac' ]
-    if hours:
-      flac[0] = getRecentFiles(flac[0],hours)
-    flacfails = theWholeEnchilada(flac,dirs,names,dst)
+    flacfails = theWholeEnchilada(flac,dirs,names,dst,hours)
 
   if 'ogg' in formats:
     ogg = [ getMusic(src,".ogg"), OggVorbis, '.ogg' ]
-    if hours:
-      ogg[0] = getRecentFiles(ogg[0],hours)
-    oggfails = theWholeEnchilada(ogg,dirs,names,dst)
+    oggfails = theWholeEnchilada(ogg,dirs,names,dst,hours)
 
   #Print failed lists for redirection
   if verbose is True:
