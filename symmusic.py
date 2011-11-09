@@ -162,17 +162,27 @@ def copyAlbumArt(pattern,dst,hours):
   for root, dirs, files, in os.walk(dst):
     for fn in files:
       abspath = os.path.join(root,fn)
-      if os.path.getmtime(abspath) > modseconds:
-        dirpath = os.path.dirname(abspath)
-        origin = os.readlink(abspath)
-        origindir = os.path.dirname(origin)
-        for oroot, odirs, ofiles, in os.walk(origindir):
-          for f in ofiles:
-            if f.endswith(pattern):
-              if os.path.exists(os.path.join(dirpath,f)) is False:
-                os.symlink(os.path.join(oroot,f),os.path.join(dirpath,f))
-                symlinks += 1
+      dirpath = os.path.dirname(abspath)
+      origin = os.readlink(abspath)
+      origindir = os.path.dirname(origin)
+      if hours > 0:
+        if os.path.getmtime(origin) > modseconds:
+          links = getOriginArt(pattern,origindir,dirpath)
+          symlinks = symlinks + links
+      else:
+        links = getOriginArt(pattern,origindir,dirpath)
+        symlinks = symlinks + links
   return symlinks
+
+def getOriginArt(pattern,origindir,dirpath):
+  links = 0 
+  for oroot, odirs, ofiles, in os.walk(origindir):
+    for f in ofiles:
+      if f.endswith(pattern):
+        if os.path.exists(os.path.join(dirpath,f)) is False:
+          os.symlink(os.path.join(oroot,f),os.path.join(dirpath,f))
+          links += 1
+  return links
 
 def cleanDestination(v,dst):
   """Check the created directory for broken links and remove them.
