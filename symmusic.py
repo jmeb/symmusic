@@ -62,7 +62,7 @@ def parseArgs():
   return ap.parse_args()
 
 def getDict(args,dictionary):
-  """ Convert formats to extension labels. Return a list """
+  """ Convert tag abbrevaiations to mutagen call labels. Return a list """
   tags = []
   for t in args:
     tags.append(dictionary[t])
@@ -70,6 +70,7 @@ def getDict(args,dictionary):
 
 def getMusic(src,pattern):
   """ Get a list of music files with a particular file extension 
+  Takes an absolute path (src), and a string file extension (e.g. '.mp3')
   """
   musiclist = []
   for root, dirs, files in os.walk(src):
@@ -80,17 +81,20 @@ def getMusic(src,pattern):
   return musiclist
 
 def getTag(f,fun,tagname):
-  """ Get an mp3 tag, fail without fanfare """
+  """ Get an mp3 tag using mutagen, fail without fanfare """
   try:
     tags = fun(f)
+  # Next line returns Unknown for tags that aren't there, and avoids issues
+  # with incomplete flac files. 
   except (ValueError,  mutagen.flac.FLACNoHeaderError):
     tags = 'Unknown'
   if tags.has_key(tagname):
     try:
       tag = tags[tagname][0]
       if tag:
-        cleaned = tag.encode('UTF-8') 
-        slashproofed = re.sub(r"/","-",cleaned) #Hack....
+        cleaned = tag.encode('UTF-8') # Encode things just in case.
+        # Convert '/' in names to '-' to avoid file path issues.
+        slashproofed = re.sub(r"/","-",cleaned) 
         return slashproofed
       else:
         return 'Unknown'
@@ -143,26 +147,31 @@ def theWholeEnchilada(encoding,dirs,names,dst,hours):
   return fails
 
 ###
-# Optional functions
+# Options
 ###
 
-def copyAlbumArt(pattern,dst):
+def copyAlbumArt(pattern,dst,hours):
   """ Check for image formats in newbase, if not there try to 
   symlink over from source """
   print "Copying Album Art...."
   symlinks = 0
+  # One problem here, calculates time after compilation so there is a chance 
+  # to miss files at very beginning of modified period based on time elapsed
+  # since the beginning of the script. Just be generous with your hours.  
+  modseconds = time.time() - ( hours * 3600 )
   for root, dirs, files, in os.walk(dst):
     for fn in files:
       abspath = os.path.join(root,fn)
-      dirpath = os.path.dirname(abspath)
-      origin = os.readlink(abspath)
-      origindir = os.path.dirname(origin)
-      for oroot, odirs, ofiles, in os.walk(origindir):
-        for f in ofiles:
-          if f.endswith(pattern):
-            if os.path.exists(os.path.join(dirpath,f)) is False:
-              os.symlink(os.path.join(oroot,f),os.path.join(dirpath,f))
-              symlinks += 1
+      if os.path.getmtime(abspath) > modseconds:
+        dirpath = os.path.dirname(abspath)
+        origin = os.readlink(abspath)
+        origindir = os.path.dirname(origin)
+        for oroot, odirs, ofiles, in os.walk(origindir):
+          for f in ofiles:
+            if f.endswith(pattern):
+              if os.path.exists(os.path.join(dirpath,f)) is False:
+                os.symlink(os.path.join(oroot,f),os.path.join(dirpath,f))
+                symlinks += 1
   return symlinks
 
 def cleanDestination(v,dst):
@@ -204,7 +213,8 @@ def removeEmptyDirs(v,path):
       print "Removing empty folder:", path
 
 def removeSmallDirs(n,v,path):
-  """ Remove small directories. Useful to avoid lots of compilation issues"""
+  """ Remove directories with less than n files. Useful to avoid lots of
+  compilation issues """
   if not os.path.isdir(path):
       return
   files = os.listdir(path)
@@ -249,7 +259,7 @@ def main():
   art = args.art                      #Artwork
   clean = args.clean                  #Clean destination
   number = args.number                #Minimum number for small dirs
-  hours = args.hours
+  hours = args.hours                  #Hours (update only modified files)
 
   #Check POSIX environment
   if os.name is not 'posix':
@@ -261,7 +271,7 @@ def main():
     print 'Destination is inside source. This is not good. Failing!'
     sys.exit()
 
-  #Set hours to 0 if not set.
+  #Set hours to 0 if not set so we can pass hours variable
   if not hours:
     hours = 0
 
@@ -295,7 +305,7 @@ def main():
 
   #Copy album art if requested
   if art is True:
-    artmakes = copyAlbumArt('.jpg',dst)
+    artmakes = copyAlbumArt('.jpg',dst,hours)
     print "Artwork images copied:", artmakes
 
 if __name__ == '__main__':

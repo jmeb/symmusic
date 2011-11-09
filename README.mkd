@@ -1,6 +1,6 @@
 #Overview
 
-Symmusic is meant for poorly-named music collections which you don't want to manipulate, but would like a nicer way of browsing. It recursively reads a directory for audio tags and builds a nice directory structure from them. The bottom-level audio files are then symbolically linked to their originating file. This allows one to keep multiple directories organized by artist, genre, album, etc without much disk overhead even for large music collections.
+Symmusic is meant for poorly-named music collections which you don't want to manipulate, but need to browse in a nice manner. It recursively reads a directory for audio tags and uses them to build a new  directory structure. The bottom-level audio files are then symbolically linked to their originating file. This allows one to keep multiple directories organized by artist, genre, album, etc without much disk overhead even for large music collections.
 
 ###Dependencies
 
@@ -23,23 +23,22 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 
 * Longer term, find windows workaround for symbolic links
 * Option to write relative rather than absolute path links.
-* Rewrite Artwork copy to work in conjunction with --hours flag. (i.e. don't search every directory.)
 * Allow complex directory specification (e.g. multiple tags)
 
-##Use
+#Use
 
 ###Command line options
 
 ####Required
 
-* *--dn* : directory names. **Required**.
+* *--dn* : directory names. 
 	- each argument will create a directory level. Follows given order.
 	- *options*: %a (artist), %l (album), %g (genre), %n (track number), %t (track title), %y (year/date)
 	- *note*: albums (%l) will be appended with file extensions.
-* *--fn* : File name. **Required**.
+* *--fn* : File name. 
 	- each argument will be added to the file name separated by a hyphen. All files will have proper file extension added.
 	- *options*: %a (artist), %l (album), %g (genre), %n (track number), %t (track title), %y (year/date)
-* *--dst* : Directory to build new file structure in. **Required**.
+* *--dst* : Directory to build new file structure in. 
 
 ####Optional
 
@@ -51,32 +50,25 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 	- *default*: current working directory.
 * *--hours* : Only query and build links to files modified in the last N hours. Takes an integer.
 * *-a, --art*: symbolically link .jpg files from origin directories into new structure.
-* *-v* : Print a list of failed file paths that can be redirected into a log file.
-* *-n, --number*: Takes an integer. This integer is the minimum number of songs (i.e. symbolic links to songs) that a directory must have at the end of creation. Directories with less will be deleted. Useful for excluding compilations from artist lists. Use of this option implies *--clean*.
+* *-v* : Print a lots of extra about deleted directories, failed symbolic link attempts, and the like. If you use this you'll probably want to redirect output (> log.txt) to a file.
+* *-n, --number*: Takes an integer. This integer is the minimum number of songs that a directory must have at the end of creation. Directories with less will be deleted. Useful for excluding compilations from artist lists. Use of this option implies *--clean*.
 * *-c, --clean*: Clean given destination directory of broken symbolic links and empty directories.
-
 
 ###Examples
 
-###Example Use Cases
+###Use Cases
 
 * Use with [Subsonic][] to sort your files in multiple ways.
 * Browse a directory you have read-only access to nicely.
 * Combine multiple users' poorly organized music folders into one nicely sorted directory without much overhead.
 
-###Syntax
-
-A basic syntax example:
-
-		symmusic.py --dn %a %l --fn %n %t --src /home/user/music --dst /home/user/music-by-artist
-
-This will read a users ../music directory, and create a new directory structure in ../music-by-artist. The new structure will have three levels: artist (a) > album (l) > filenames (n t). Note that directory structure is based on order of options, with the leftmost option being the highest level directory. The filename is the track number (n), and title (t). Symbolic links will resolve back to the ../music directory. All except the '--src' argument are required (--src defaults to the working directory if not specified.)
+###Syntax Examples
 
 * Sort only mp3s by: Genre / Artist / Album. Filename is Number - Title, and include album art:
 
 		symmusic.py -a --formats mp3 --dn %g %a %l --fn %t --src /music --dst /by-genre
 
-* Sort by: Year / Genre / Album. Filename is Artist - Title AND redirect failures to a log file:
+* Sort all formats by: Year / Genre / Album. Filename is Artist - Title AND redirect failures to a log file:
 
 		symmusic.py -v --dn %y %g %l --fn %a %t --src /music --dst /by-year > failures.log
 
@@ -92,10 +84,9 @@ This will read a users ../music directory, and create a new directory structure 
 
 * All albums are appended with a tag of what filetype the contain. So "The White Album" becomes "The White Album [.mp3]". This is something my own collection needs because I often have flac and mp3 versions of the same files. 
 
-* When a metadata tag can't be read it *should* return 'Unknown'. The effect is you might have 'unknown' directories in each level of your hierarchy. 
+* When a metadata tag can't be read it *should* return 'Unknown'. The effect is you might have (large) 'Unknown' directories in each level of your hierarchy. 
 
 * I wouldn't put much faith in the 'files created' number that is printed. Its a dumb counter. 
-
 
 ###Comparison to similar utitilies
 
