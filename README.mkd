@@ -94,7 +94,7 @@ Symmusic is meant for poorly-named music collections which you don't want to man
 	- *Issues:* Pytagsfs runs through fuse and stores its map of metadata in memory. For small collections this is fine, but this can be resource intensive on large, multiply sorted collections. (Especially if you don't really need all the functionality.) 
 	- *Comparison to symmusic:* Symmusic generates a directory structure and then is done. It uses less resources, but is also less flexible. Whereas pytagsfs generates a read-write directory structure, symmusic's is basically read-only.
 
-* Music reogranizers: a number of utilities exist that will reorganize a directory of music files based on their tags.
+* Music organizers: a number of utilities exist that will reorganize a directory of music files based on their tags.
 	- *Issues*: This modifies you directory structure and filenames. 
 	- *Comparison to symmusic:* Reorganizers of this sort lock you into one directory structure (unless you keep multiple copies of the audio files around). Symmusic allows you to have multiple views with little overhead. Furthermore it never touches your original data. 
 
